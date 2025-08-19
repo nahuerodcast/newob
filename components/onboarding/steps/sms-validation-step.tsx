@@ -1,30 +1,39 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Smartphone, MessageSquare, RefreshCw } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useOnboarding, type smsValidationSchema } from "@/hooks/use-onboarding"
-import { useToast } from "@/hooks/use-toast"
-import { z } from "zod"
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Smartphone, MessageSquare, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  useOnboarding,
+  type smsValidationSchema,
+} from "@/hooks/use-onboarding";
+import { useToast } from "@/hooks/use-toast";
+import { z } from "zod";
 
-type SmsValidationData = z.infer<typeof smsValidationSchema>
+type SmsValidationData = z.infer<typeof smsValidationSchema>;
 
 const phoneSchema = z.object({
   countryCode: z.string().min(1, "Código de país requerido"),
   phoneNumber: z.string().min(6, "Número de teléfono inválido"),
-})
+});
 
 const codeSchema = z.object({
   code: z
     .string()
-    .length(6, "El código debe tener 6 dígitos")
-    .regex(/^\d{6}$/, "Solo números permitidos"),
-})
+    .length(4, "El código debe tener 4 dígitos")
+    .regex(/^\d{4}$/, "Solo números permitidos"),
+});
 
 const countryCodes = [
   { code: "+54", country: "Argentina", flag: "🇦🇷" },
@@ -35,14 +44,15 @@ const countryCodes = [
   { code: "+51", country: "Perú", flag: "🇵🇪" },
   { code: "+598", country: "Uruguay", flag: "🇺🇾" },
   { code: "+595", country: "Paraguay", flag: "🇵🇾" },
-]
+];
 
 export function SmsValidationStep() {
-  const { data, updateStepData, nextStep, apiCall, isLoading, setError } = useOnboarding()
-  const [step, setStep] = useState<"phone" | "code">("phone")
-  const [sentToNumber, setSentToNumber] = useState<string>("")
-  const [countdown, setCountdown] = useState(0)
-  const { toast } = useToast()
+  const { data, updateStepData, nextStep, apiCall, isLoading, setError } =
+    useOnboarding();
+  const [step, setStep] = useState<"phone" | "code">("phone");
+  const [sentToNumber, setSentToNumber] = useState<string>("");
+  const [countdown, setCountdown] = useState(0);
+  const { toast } = useToast();
 
   const phoneForm = useForm<z.infer<typeof phoneSchema>>({
     resolver: zodResolver(phoneSchema),
@@ -50,158 +60,176 @@ export function SmsValidationStep() {
       countryCode: "+54",
       phoneNumber: "",
     },
-  })
+  });
 
   const codeForm = useForm<z.infer<typeof codeSchema>>({
     resolver: zodResolver(codeSchema),
-  })
+  });
 
   // Iniciar countdown para reenvío
   const startCountdown = () => {
-    setCountdown(60)
+    setCountdown(60);
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
-          clearInterval(timer)
-          return 0
+          clearInterval(timer);
+          return 0;
         }
-        return prev - 1
-      })
-    }, 1000)
-  }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   const onPhoneSubmit = async (phoneData: z.infer<typeof phoneSchema>) => {
     try {
-      setError(null)
-      const fullPhoneNumber = `${phoneData.countryCode}${phoneData.phoneNumber}`
+      setError(null);
+      const fullPhoneNumber = `${phoneData.countryCode}${phoneData.phoneNumber}`;
 
-      const userEmail = data.step1?.email
+      const userEmail = data.registration?.email;
       if (!userEmail) {
-        throw new Error("Email no encontrado")
+        throw new Error("Email no encontrado");
       }
 
-      console.log("[v0] Sending SMS request to:", `/v1/user/users/${userEmail}?onBoardingStepName=PhoneData`)
-      console.log("[v0] SMS request data:", { cellNumber: fullPhoneNumber })
+      console.log(
+        "[v0] Sending SMS request to:",
+        `/v1/user/users/${userEmail}?onBoardingStepName=PhoneData`
+      );
+      console.log("[v0] SMS request data:", { cellNumber: fullPhoneNumber });
 
-      const response = await apiCall(`/v1/user/users/${userEmail}?onBoardingStepName=PhoneData`, "PUT", {
-        cellNumber: fullPhoneNumber,
-      })
+      const response = await apiCall(
+        `/v1/user/users/${userEmail}?onBoardingStepName=PhoneData`,
+        "PUT",
+        {
+          cellNumber: fullPhoneNumber,
+        }
+      );
 
-      console.log("[v0] SMS API response:", response)
-      console.log("[v0] SMS API response status: SUCCESS")
+      console.log("[v0] SMS API response:", response);
+      console.log("[v0] SMS API response status: SUCCESS");
 
-      setSentToNumber(fullPhoneNumber)
-      setStep("code")
-      startCountdown()
+      setSentToNumber(fullPhoneNumber);
+      setStep("code");
+      startCountdown();
 
       toast({
         title: "SMS enviado",
         description: `Código de verificación enviado a ${fullPhoneNumber}`,
-      })
+      });
     } catch (error) {
-      console.error("[v0] SMS send error details:", error)
-      console.log("[v0] SMS API response status: ERROR")
+      console.error("[v0] SMS send error details:", error);
+      console.log("[v0] SMS API response status: ERROR");
       if (error instanceof Error) {
-        console.log("[v0] Error message:", error.message)
+        console.log("[v0] Error message:", error.message);
       }
 
       toast({
         variant: "destructive",
         title: "Error al enviar SMS",
-        description: "No se pudo enviar el código. Verifica el número e intenta nuevamente.",
-      })
+        description:
+          "No se pudo enviar el código. Verifica el número e intenta nuevamente.",
+      });
     }
-  }
+  };
 
   const onCodeSubmit = async (codeData: z.infer<typeof codeSchema>) => {
     try {
-      setError(null)
+      setError(null);
 
-      const userEmail = data.step1?.email
+      const userEmail = data.registration?.email;
       if (!userEmail) {
-        throw new Error("Email no encontrado")
+        throw new Error("Email no encontrado");
       }
 
-      console.log("[v0] Sending code verification to:", `/v1/user/users/${userEmail}`)
-      console.log("[v0] Code verification data:", { code: codeData.code })
+      console.log(
+        "[v0] Sending code verification to:",
+        `/v1/user/users/${userEmail}`
+      );
+      console.log("[v0] Code verification data:", { code: codeData.code });
 
       const response = await apiCall(`/v1/user/users/${userEmail}`, "PUT", {
         code: codeData.code,
-      })
+      });
 
-      console.log("[v0] Code verification response:", response)
+      console.log("[v0] Code verification response:", response);
 
       // Guardar datos de validación SMS
       const smsData: SmsValidationData = {
         cellNumber: sentToNumber,
         code: codeData.code,
-      }
+      };
 
-      updateStepData("smsValidation", smsData)
+      updateStepData("smsValidation", smsData);
 
       toast({
         title: "Teléfono verificado",
         description: "Tu número de teléfono ha sido verificado exitosamente.",
-      })
+      });
 
-      nextStep()
+      nextStep();
     } catch (error) {
-      console.error("[v0] SMS verification error details:", error)
+      console.error("[v0] SMS verification error details:", error);
       if (error instanceof Error) {
-        console.log("[v0] Verification error message:", error.message)
+        console.log("[v0] Verification error message:", error.message);
       }
 
       toast({
         variant: "destructive",
         title: "Código incorrecto",
         description: "El código ingresado no es válido. Intenta nuevamente.",
-      })
+      });
     }
-  }
+  };
 
   const resendCode = async () => {
-    if (countdown > 0) return
+    if (countdown > 0) return;
 
     try {
-      const userEmail = data.step1?.email
+      const userEmail = data.registration?.email;
       if (!userEmail) {
-        throw new Error("Email no encontrado")
+        throw new Error("Email no encontrado");
       }
 
-      console.log("[v0] Resending SMS to:", `/v1/user/users/${userEmail}?onBoardingStepName=PhoneData`)
-      console.log("[v0] Resend data:", { cellNumber: sentToNumber })
+      console.log(
+        "[v0] Resending SMS to:",
+        `/v1/user/users/${userEmail}?onBoardingStepName=PhoneData`
+      );
+      console.log("[v0] Resend data:", { cellNumber: sentToNumber });
 
-      const response = await apiCall(`/v1/user/users/${userEmail}?onBoardingStepName=PhoneData`, "PUT", {
-        cellNumber: sentToNumber,
-      })
+      const response = await apiCall(
+        `/v1/user/users/${userEmail}?onBoardingStepName=PhoneData`,
+        "PUT",
+        {
+          cellNumber: sentToNumber,
+        }
+      );
 
-      console.log("[v0] Resend SMS response:", response)
+      console.log("[v0] Resend SMS response:", response);
 
-      startCountdown()
+      startCountdown();
       toast({
         title: "SMS reenviado",
         description: "Se ha enviado un nuevo código de verificación.",
-      })
+      });
     } catch (error) {
-      console.error("[v0] SMS resend error details:", error)
+      console.error("[v0] SMS resend error details:", error);
       if (error instanceof Error) {
-        console.log("[v0] Resend error message:", error.message)
+        console.log("[v0] Resend error message:", error.message);
       }
 
       toast({
         variant: "destructive",
         title: "Error al reenviar",
         description: "No se pudo reenviar el código. Intenta nuevamente.",
-      })
+      });
     }
-  }
+  };
 
   const goBackToPhone = () => {
-    setStep("phone")
-    setSentToNumber("")
-    setCountdown(0)
-    codeForm.reset()
-  }
+    setStep("phone");
+    setSentToNumber("");
+    setCountdown(0);
+    codeForm.reset();
+  };
 
   if (step === "phone") {
     return (
@@ -211,15 +239,22 @@ export function SmsValidationStep() {
             <Smartphone className="h-8 w-8 text-primary" />
           </div>
           <h2 className="text-2xl font-bold">Verificar teléfono</h2>
-          <p className="text-muted-foreground">Ingresa tu número para recibir un código de verificación</p>
+          <p className="text-muted-foreground">
+            Ingresa tu número para recibir un código de verificación
+          </p>
         </div>
 
-        <form onSubmit={phoneForm.handleSubmit(onPhoneSubmit)} className="space-y-4">
+        <form
+          onSubmit={phoneForm.handleSubmit(onPhoneSubmit)}
+          className="space-y-4"
+        >
           <div className="space-y-2">
             <Label htmlFor="countryCode">Código de país</Label>
             <Select
               value={phoneForm.watch("countryCode")}
-              onValueChange={(value) => phoneForm.setValue("countryCode", value)}
+              onValueChange={(value) =>
+                phoneForm.setValue("countryCode", value)
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecciona código de país" />
@@ -230,14 +265,18 @@ export function SmsValidationStep() {
                     <div className="flex items-center gap-2">
                       <span>{country.flag}</span>
                       <span>{country.code}</span>
-                      <span className="text-muted-foreground">{country.country}</span>
+                      <span className="text-muted-foreground">
+                        {country.country}
+                      </span>
                     </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             {phoneForm.formState.errors.countryCode && (
-              <p className="text-sm text-destructive">{phoneForm.formState.errors.countryCode.message}</p>
+              <p className="text-sm text-destructive">
+                {phoneForm.formState.errors.countryCode.message}
+              </p>
             )}
           </div>
 
@@ -252,11 +291,17 @@ export function SmsValidationStep() {
                 type="tel"
                 placeholder="1123456789"
                 {...phoneForm.register("phoneNumber")}
-                className={phoneForm.formState.errors.phoneNumber ? "border-destructive flex-1" : "flex-1"}
+                className={
+                  phoneForm.formState.errors.phoneNumber
+                    ? "border-destructive flex-1"
+                    : "flex-1"
+                }
               />
             </div>
             {phoneForm.formState.errors.phoneNumber && (
-              <p className="text-sm text-destructive">{phoneForm.formState.errors.phoneNumber.message}</p>
+              <p className="text-sm text-destructive">
+                {phoneForm.formState.errors.phoneNumber.message}
+              </p>
             )}
           </div>
 
@@ -266,10 +311,10 @@ export function SmsValidationStep() {
         </form>
 
         <div className="text-xs text-muted-foreground text-center">
-          Recibirás un SMS con un código de 6 dígitos para verificar tu número.
+          Recibirás un SMS con un código de 4 dígitos para verificar tu número.
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -279,11 +324,16 @@ export function SmsValidationStep() {
           <MessageSquare className="h-8 w-8 text-primary" />
         </div>
         <h2 className="text-2xl font-bold">Ingresa el código</h2>
-        <p className="text-muted-foreground">Enviamos un código de 6 dígitos a</p>
+        <p className="text-muted-foreground">
+          Enviamos un código de 4 dígitos a
+        </p>
         <p className="font-medium">{sentToNumber}</p>
       </div>
 
-      <form onSubmit={codeForm.handleSubmit(onCodeSubmit)} className="space-y-4">
+      <form
+        onSubmit={codeForm.handleSubmit(onCodeSubmit)}
+        className="space-y-4"
+      >
         <div className="space-y-2">
           <Label htmlFor="code">Código de verificación</Label>
           <Input
@@ -291,8 +341,8 @@ export function SmsValidationStep() {
             type="text"
             inputMode="numeric"
             pattern="[0-9]*"
-            maxLength={6}
-            placeholder="123456"
+            maxLength={4}
+            placeholder="1234"
             className={`text-center text-lg tracking-widest ${
               codeForm.formState.errors.code ? "border-destructive" : ""
             }`}
@@ -300,7 +350,9 @@ export function SmsValidationStep() {
             autoComplete="one-time-code"
           />
           {codeForm.formState.errors.code && (
-            <p className="text-sm text-destructive">{codeForm.formState.errors.code.message}</p>
+            <p className="text-sm text-destructive">
+              {codeForm.formState.errors.code.message}
+            </p>
           )}
         </div>
 
@@ -330,15 +382,21 @@ export function SmsValidationStep() {
         </div>
 
         <div className="text-center">
-          <Button type="button" variant="ghost" onClick={goBackToPhone} className="text-sm text-muted-foreground">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={goBackToPhone}
+            className="text-sm text-muted-foreground"
+          >
             Cambiar número de teléfono
           </Button>
         </div>
       </div>
 
       <div className="text-xs text-muted-foreground text-center">
-        ¿No recibiste el SMS? Revisa que el número sea correcto y que tengas señal.
+        ¿No recibiste el SMS? Revisa que el número sea correcto y que tengas
+        señal.
       </div>
     </div>
-  )
+  );
 }

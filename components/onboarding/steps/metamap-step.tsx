@@ -90,6 +90,8 @@ export function MetamapStep() {
         flowId: "619fa0e8ef554d001d186cb9", // Flow ID from requirements
       }
 
+      // Debug: verificar variables de entorno
+      console.log("[v0] NEXT_PUBLIC_METAMAP_CLIENT_ID:", process.env.NEXT_PUBLIC_METAMAP_CLIENT_ID)
       console.log("[v0] Initializing Metamap with config:", configuration)
 
       const verification = new window.MetamapVerification(configuration)

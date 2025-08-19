@@ -1,96 +1,108 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Mail, RefreshCw } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { useOnboarding } from "@/hooks/use-onboarding"
-import { useToast } from "@/hooks/use-toast"
+import { useEffect, useState } from "react";
+import { Mail, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useOnboarding } from "@/hooks/use-onboarding";
+import { useToast } from "@/hooks/use-toast";
 
 export function EmailValidationStep() {
-  const { data, nextStep, apiCall, isLoading } = useOnboarding()
-  const [isChecking, setIsChecking] = useState(false)
-  const [checkInterval, setCheckInterval] = useState<NodeJS.Timeout | null>(null)
-  const { toast } = useToast()
+  const { data, nextStep, apiCall, isLoading } = useOnboarding();
+  const [isChecking, setIsChecking] = useState(false);
+  const [checkInterval, setCheckInterval] = useState<NodeJS.Timeout | null>(
+    null
+  );
+  const { toast } = useToast();
 
-  const userEmail = data.registration?.email
+  const userEmail = data.registration?.email;
 
   // Verificar automáticamente el estado del usuario cada 3 segundos
   useEffect(() => {
-    if (!userEmail) return
+    if (!userEmail) return;
 
     const checkEmailValidation = async () => {
       try {
-        setIsChecking(true)
-        const user = await apiCall(`/user/users/${userEmail}`, "GET")
+        setIsChecking(true);
+        console.log("[v0] Checking email validation for:", userEmail);
+        const user = await apiCall(`/user/users/${userEmail}`, "GET");
+        console.log("[v0] API response:", user);
+        console.log("[v0] User status:", user.userStatus);
 
-        if (user.userStatus === "Awaiting_Registration_complete") {
+        if (user.userStatus === "AWAITING_REGISTRATION_COMPLETE") {
+          console.log(
+            "[v0] Email verified, clearing interval and calling nextStep"
+          );
           if (checkInterval) {
-            clearInterval(checkInterval)
+            clearInterval(checkInterval);
           }
           toast({
             title: "Email verificado",
             description: "Continuando con el siguiente paso...",
-          })
-          nextStep()
+          });
+          console.log("[v0] About to call nextStep");
+          nextStep();
+          console.log("[v0] nextStep called");
+        } else {
+          console.log("[v0] Email not yet verified, status:", user.userStatus);
         }
       } catch (error) {
-        console.error("Error checking email validation:", error)
+        console.error("Error checking email validation:", error);
         if (error instanceof Error && !error.message.includes("fetch")) {
           toast({
             variant: "destructive",
             title: "Error de verificación",
             description: "Problema al verificar el email. Intenta manualmente.",
-          })
+          });
         }
       } finally {
-        setIsChecking(false)
+        setIsChecking(false);
       }
-    }
+    };
 
     // Verificar inmediatamente
-    checkEmailValidation()
+    checkEmailValidation();
 
     // Configurar verificación automática cada 3 segundos
-    const interval = setInterval(checkEmailValidation, 3000)
-    setCheckInterval(interval)
+    const interval = setInterval(checkEmailValidation, 3000);
+    setCheckInterval(interval);
 
     return () => {
       if (interval) {
-        clearInterval(interval)
+        clearInterval(interval);
       }
-    }
-  }, [userEmail, apiCall, nextStep, checkInterval, toast])
+    };
+  }, [userEmail, apiCall, nextStep, checkInterval, toast]);
 
   const handleManualCheck = async () => {
-    if (!userEmail) return
+    if (!userEmail) return;
 
     try {
-      setIsChecking(true)
-      const user = await apiCall(`/user/users/${userEmail}`, "GET")
+      setIsChecking(true);
+      const user = await apiCall(`/user/users/${userEmail}`, "GET");
 
-      if (user.userStatus === "Awaiting_Registration_complete") {
+      if (user.userStatus === "AWAITING_REGISTRATION_COMPLETE") {
         toast({
           title: "Email verificado",
           description: "Continuando con el siguiente paso...",
-        })
-        nextStep()
+        });
+        nextStep();
       } else {
         toast({
           title: "Email aún no verificado",
           description: "Revisa tu bandeja de entrada y spam.",
-        })
+        });
       }
     } catch (error) {
-      console.error("Error checking email validation:", error)
+      console.error("Error checking email validation:", error);
       toast({
         variant: "destructive",
         title: "Error de verificación",
         description: "No se pudo verificar el estado del email.",
-      })
+      });
     } finally {
-      setIsChecking(false)
+      setIsChecking(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-6 text-center">
@@ -101,14 +113,17 @@ export function EmailValidationStep() {
 
         <div className="space-y-2">
           <h2 className="text-2xl font-bold">Verifica tu email</h2>
-          <p className="text-muted-foreground">Hemos enviado un enlace de verificación a</p>
+          <p className="text-muted-foreground">
+            Hemos enviado un enlace de verificación a
+          </p>
           <p className="font-medium">{userEmail}</p>
         </div>
       </div>
 
       <div className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Haz clic en el enlace del email para continuar. La verificación se detectará automáticamente.
+          Haz clic en el enlace del email para continuar. La verificación se
+          detectará automáticamente.
         </p>
 
         {isChecking && (
@@ -132,5 +147,5 @@ export function EmailValidationStep() {
         ¿No recibiste el email? Revisa tu carpeta de spam o contacta soporte.
       </div>
     </div>
-  )
+  );
 }

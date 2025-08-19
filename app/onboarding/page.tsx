@@ -1,11 +1,14 @@
-"use client"
+"use client";
 
-import { OnboardingFlow } from "@/components/onboarding/onboarding-flow"
+import { OnboardingFlow } from "@/components/onboarding/onboarding-flow";
+import { OnboardingProvider } from "@/hooks/use-onboarding";
 
 export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-background">
-      <OnboardingFlow />
+      <OnboardingProvider>
+        <OnboardingFlow />
+      </OnboardingProvider>
     </div>
-  )
+  );
 }

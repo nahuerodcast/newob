@@ -1,20 +1,26 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useForm, Controller } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { User, Building2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useOnboarding, accountTypeSchema } from "@/hooks/use-onboarding"
-import { useToast } from "@/hooks/use-toast"
-import { cn } from "@/lib/utils"
-import type { z } from "zod"
+import { useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { User, Building2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useOnboarding, accountTypeSchema } from "@/hooks/use-onboarding";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import type { z } from "zod";
 
-type AccountTypeData = z.infer<typeof accountTypeSchema>
+type AccountTypeData = z.infer<typeof accountTypeSchema>;
 
 const countries = [
   "Argentina",
@@ -27,7 +33,7 @@ const countries = [
   "Paraguay",
   "Bolivia",
   "Ecuador",
-]
+];
 
 const argentinaCities = [
   "Capital Federal",
@@ -40,14 +46,21 @@ const argentinaCities = [
   "Tucumán",
   "Salta",
   "Santa Fe",
-]
+];
 
-const billingTypes = ["Consumidor Final", "Responsable Inscripto", "Monotributista"] as const
+const billingTypes = [
+  "Consumidor Final",
+  "Responsable Inscripto",
+  "Monotributista",
+] as const;
 
 export function AccountTypeStep() {
-  const { data, updateStepData, nextStep, apiCall, isLoading, setError } = useOnboarding()
-  const [selectedType, setSelectedType] = useState<"persona" | "empresa" | null>(null)
-  const { toast } = useToast()
+  const { data, updateStepData, nextStep, apiCall, isLoading, setError } =
+    useOnboarding();
+  const [selectedType, setSelectedType] = useState<
+    "persona" | "empresa" | null
+  >(null);
+  const { toast } = useToast();
 
   const {
     register,
@@ -59,69 +72,71 @@ export function AccountTypeStep() {
   } = useForm<AccountTypeData>({
     resolver: zodResolver(accountTypeSchema),
     defaultValues: data.accountType || {},
-  })
+  });
 
-  const accountType = watch("accountType")
+  const accountType = watch("accountType");
 
   const onSubmit = async (formData: AccountTypeData) => {
     try {
-      setError(null)
+      setError(null);
 
-      console.log("[v0] Account type data:", data)
-      console.log("[v0] Registration data:", data.registration)
+      console.log("[v0] Account type data:", data);
+      console.log("[v0] Registration data:", data.registration);
 
-      const userEmail = data.step1?.email
+      const userEmail = data.registration?.email;
 
       if (!userEmail) {
-        console.error("[v0] Email not found in data structure:", data)
-        throw new Error("Email no encontrado")
+        console.error("[v0] Email not found in data structure:", data);
+        throw new Error("Email no encontrado");
       }
 
       const apiData: any = {
         nationality: formData.nationality,
         identificationNumber: formData.identificationNumber,
-      }
+      };
 
       if (formData.accountType === "empresa") {
         // Solo para empresas se envían todos los datos
-        apiData.businessName = formData.businessName
-        apiData.individualTaxpayerId = formData.individualTaxpayerId
-        apiData.billingType = formData.billingType
-        apiData.address = formData.address
-        apiData.billingAddress = formData.billingAddress
+        apiData.businessName = formData.businessName;
+        apiData.individualTaxpayerId = formData.individualTaxpayerId;
+        apiData.billingType = formData.billingType;
+        apiData.address = formData.address;
+        apiData.billingAddress = formData.billingAddress;
       }
 
-      console.log("[v0] Sending API data:", apiData)
-      console.log("[v0] To endpoint:", `/v1/user/users/${userEmail}`)
+      console.log("[v0] Sending API data:", apiData);
+      console.log("[v0] To endpoint:", `/v1/user/users/${userEmail}`);
 
-      await apiCall(`/v1/user/users/${userEmail}`, "PUT", apiData)
+      await apiCall(`/v1/user/users/${userEmail}`, "PUT", apiData);
 
-      updateStepData("accountType", formData)
+      updateStepData("accountType", formData);
       toast({
         title: "Información guardada",
         description: "Continuando con la verificación de identidad...",
-      })
-      nextStep()
+      });
+      nextStep();
     } catch (error) {
-      console.error("Account type error:", error)
+      console.error("Account type error:", error);
       toast({
         variant: "destructive",
         title: "Error al guardar información",
         description: "Por favor verifica los datos e intenta nuevamente.",
-      })
+      });
     }
-  }
+  };
 
   const handleTypeSelection = (type: "persona" | "empresa") => {
-    setSelectedType(type)
-    setValue("accountType", type)
-  }
+    setSelectedType(type);
+    setValue("accountType", type);
+  };
 
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold">Tipo de cuenta</h2>
-        <p className="text-muted-foreground">Selecciona el tipo de cuenta que deseas crear</p>
+        <p className="text-muted-foreground">
+          Selecciona el tipo de cuenta que deseas crear
+        </p>
       </div>
 
       {!accountType && (
@@ -129,7 +144,7 @@ export function AccountTypeStep() {
           <Card
             className={cn(
               "cursor-pointer transition-all hover:shadow-md",
-              selectedType === "persona" && "ring-2 ring-primary",
+              selectedType === "persona" && "ring-2 ring-primary"
             )}
             onClick={() => handleTypeSelection("persona")}
           >
@@ -139,7 +154,9 @@ export function AccountTypeStep() {
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold">Cuenta Personal</h3>
-                <p className="text-sm text-muted-foreground">Para uso individual</p>
+                <p className="text-sm text-muted-foreground">
+                  Para uso individual
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -147,7 +164,7 @@ export function AccountTypeStep() {
           <Card
             className={cn(
               "cursor-pointer transition-all hover:shadow-md",
-              selectedType === "empresa" && "ring-2 ring-primary",
+              selectedType === "empresa" && "ring-2 ring-primary"
             )}
             onClick={() => handleTypeSelection("empresa")}
           >
@@ -157,7 +174,9 @@ export function AccountTypeStep() {
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold">Cuenta Empresarial</h3>
-                <p className="text-sm text-muted-foreground">Para empresas y organizaciones</p>
+                <p className="text-sm text-muted-foreground">
+                  Para empresas y organizaciones
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -174,7 +193,9 @@ export function AccountTypeStep() {
               control={control}
               render={({ field }) => (
                 <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger className={errors.nationality ? "border-destructive" : ""}>
+                  <SelectTrigger
+                    className={errors.nationality ? "border-destructive" : ""}
+                  >
                     <SelectValue placeholder="Selecciona tu nacionalidad" />
                   </SelectTrigger>
                   <SelectContent>
@@ -187,7 +208,11 @@ export function AccountTypeStep() {
                 </Select>
               )}
             />
-            {errors.nationality && <p className="text-sm text-destructive">{errors.nationality.message}</p>}
+            {errors.nationality && (
+              <p className="text-sm text-destructive">
+                {errors.nationality.message}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -196,10 +221,14 @@ export function AccountTypeStep() {
               id="identificationNumber"
               placeholder="12345678"
               {...register("identificationNumber")}
-              className={errors.identificationNumber ? "border-destructive" : ""}
+              className={
+                errors.identificationNumber ? "border-destructive" : ""
+              }
             />
             {errors.identificationNumber && (
-              <p className="text-sm text-destructive">{errors.identificationNumber.message}</p>
+              <p className="text-sm text-destructive">
+                {errors.identificationNumber.message}
+              </p>
             )}
           </div>
 
@@ -216,7 +245,11 @@ export function AccountTypeStep() {
                   {...register("businessName")}
                   className={errors.businessName ? "border-destructive" : ""}
                 />
-                {errors.businessName && <p className="text-sm text-destructive">{errors.businessName.message}</p>}
+                {errors.businessName && (
+                  <p className="text-sm text-destructive">
+                    {errors.businessName.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -225,10 +258,14 @@ export function AccountTypeStep() {
                   id="individualTaxpayerId"
                   placeholder="20-12345678-9"
                   {...register("individualTaxpayerId")}
-                  className={errors.individualTaxpayerId ? "border-destructive" : ""}
+                  className={
+                    errors.individualTaxpayerId ? "border-destructive" : ""
+                  }
                 />
                 {errors.individualTaxpayerId && (
-                  <p className="text-sm text-destructive">{errors.individualTaxpayerId.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.individualTaxpayerId.message}
+                  </p>
                 )}
               </div>
 
@@ -239,7 +276,11 @@ export function AccountTypeStep() {
                   control={control}
                   render={({ field }) => (
                     <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger className={errors.billingType ? "border-destructive" : ""}>
+                      <SelectTrigger
+                        className={
+                          errors.billingType ? "border-destructive" : ""
+                        }
+                      >
                         <SelectValue placeholder="Selecciona tipo de facturación" />
                       </SelectTrigger>
                       <SelectContent>
@@ -252,7 +293,11 @@ export function AccountTypeStep() {
                     </Select>
                   )}
                 />
-                {errors.billingType && <p className="text-sm text-destructive">{errors.billingType.message}</p>}
+                {errors.billingType && (
+                  <p className="text-sm text-destructive">
+                    {errors.billingType.message}
+                  </p>
+                )}
               </div>
 
               {/* Dirección fiscal para empresa */}
@@ -265,7 +310,10 @@ export function AccountTypeStep() {
                       name="billingAddress.country"
                       control={control}
                       render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Selecciona país" />
                           </SelectTrigger>
@@ -287,7 +335,10 @@ export function AccountTypeStep() {
                       name="billingAddress.town"
                       control={control}
                       render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Selecciona ciudad" />
                           </SelectTrigger>
@@ -315,7 +366,11 @@ export function AccountTypeStep() {
 
                 <div className="space-y-2">
                   <Label htmlFor="billingAddress.postcode">Código postal</Label>
-                  <Input id="billingAddress.postcode" placeholder="1234" {...register("billingAddress.postcode")} />
+                  <Input
+                    id="billingAddress.postcode"
+                    placeholder="1234"
+                    {...register("billingAddress.postcode")}
+                  />
                 </div>
               </div>
             </>
@@ -337,5 +392,5 @@ export function AccountTypeStep() {
         </form>
       )}
     </div>
-  )
+  );
 }
