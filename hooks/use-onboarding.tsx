@@ -139,22 +139,39 @@ export function OnboardingProvider({
       return;
     }
 
-    try {
-      const savedStep = localStorage.getItem(STEP_KEY);
-      console.log("[v0] Hydration - savedStep from localStorage:", savedStep);
-      if (savedStep) {
-        const initialStep = savedStep as OnboardingStep;
-        console.log("[v0] Hydration - setting step to:", initialStep);
-        setCurrentStep(initialStep);
+    const performHydration = () => {
+      try {
+        const savedStep = localStorage.getItem(STEP_KEY);
+        console.log("[v0] Hydration - savedStep from localStorage:", savedStep);
+        if (savedStep) {
+          const initialStep = savedStep as OnboardingStep;
+          console.log("[v0] Hydration - setting step to:", initialStep);
+          setCurrentStep(initialStep);
+        }
+        setIsHydrated(true);
+        hydrationRef.current = true;
+        console.log("[v0] Hydration completed, marked as done");
+      } catch (error) {
+        console.log("[v0] Hydration - error reading localStorage:", error);
+        setIsHydrated(true);
+        hydrationRef.current = true;
       }
-      setIsHydrated(true);
-      hydrationRef.current = true;
-      console.log("[v0] Hydration completed, marked as done");
-    } catch (error) {
-      console.log("[v0] Hydration - error reading localStorage:", error);
-      setIsHydrated(true);
-      hydrationRef.current = true;
-    }
+    };
+
+    const timer = setTimeout(performHydration, 0);
+    
+    const safetyTimer = setTimeout(() => {
+      if (!hydrationRef.current) {
+        console.log("[v0] Safety timeout triggered, forcing hydration");
+        setIsHydrated(true);
+        hydrationRef.current = true;
+      }
+    }, 1000);
+    
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(safetyTimer);
+    };
   }, []);
 
   const [data, setData] = useState<OnboardingData>(() => {

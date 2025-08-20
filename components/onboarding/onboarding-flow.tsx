@@ -22,7 +22,6 @@ export function OnboardingFlow() {
     isHydrated
   );
 
-  // No renderizar hasta que esté hidratado
   if (!isHydrated) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
@@ -65,7 +64,6 @@ export function OnboardingFlow() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <OnboardingHeader />
       <OnboardingProgress />
       <main className="flex-1 px-4 py-6">
         <div className="max-w-md mx-auto">{renderStep()}</div>

@@ -1,19 +1,85 @@
 import * as React from "react"
-
 import { cn } from "@/lib/utils"
+import { colors } from "@/lib/theme"
 
-const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
-  ({ className, type, ...props }, ref) => {
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  disabled?: boolean
+  error?: boolean
+  isFocused?: boolean
+  hasIcon?: boolean
+  iconPosition?: 'left' | 'right'
+  bold?: boolean
+  icon?: React.ReactNode
+}
+
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ 
+    className, 
+    type, 
+    disabled = false,
+    error = false,
+    isFocused = false,
+    hasIcon = false,
+    iconPosition = 'left',
+    bold = false,
+    icon,
+    ...props 
+  }, ref) => {
+    const [focused, setFocused] = React.useState(false)
+
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      setFocused(true)
+      props.onFocus?.(e)
+    }
+
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+      setFocused(false)
+      props.onBlur?.(e)
+    }
+
+    const isInputFocused = isFocused || focused
+
     return (
-      <input
-        type={type}
-        className={cn(
-          "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-          className
+      <div className={cn(
+        "flex flex-row items-center w-full rounded-xl border border-[#e3e3e3]",
+        disabled ? "bg-[#F8F8F8]" : "bg-white",
+        className
+      )}>
+        {icon && iconPosition === 'left' && (
+          <div className="flex items-center justify-center pl-3">
+            {icon}
+          </div>
         )}
-        ref={ref}
-        {...props}
-      />
+        
+        <input
+          type={type}
+          className={cn(
+            "flex-1 h-12 px-4 text-sm bg-transparent border-0 outline-none",
+            "placeholder:text-gray-400 disabled:cursor-not-allowed",
+            bold ? "font-bold" : "font-normal",
+            error && !isInputFocused ? "text-[#FF6961]" : "text-black",
+            "tracking-[0.4px]"
+          )}
+          style={{
+            backgroundColor: disabled ? colors.alabaster : colors.white,
+            borderRadius: '12px',
+            fontSize: '12px',
+            letterSpacing: '0.4px',
+            height: '48px',
+          }}
+          ref={ref}
+          disabled={disabled}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          {...props}
+        />
+        
+        {icon && iconPosition === 'right' && (
+          <div className="flex items-center justify-center pr-3">
+            {icon}
+          </div>
+        )}
+      </div>
     )
   }
 )

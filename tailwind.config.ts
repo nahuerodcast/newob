@@ -12,6 +12,10 @@ const config: Config = {
   ],
   theme: {
   	extend: {
+  		fontFamily: {
+  			sans: ['var(--font-dm-sans)', 'DM Sans', 'system-ui', 'sans-serif'],
+  			mono: ['var(--font-mono)', 'monospace'],
+  		},
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
@@ -62,6 +66,11 @@ const config: Config = {
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
+  			},
+  			tenant: {
+  				primary: '#1C8282',
+  				'primary-background': '#F8F8F8',
+  				disabled: '#909090'
   			}
   		},
   		borderRadius: {

@@ -231,9 +231,9 @@ export function RegistrationStep() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4">
       <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold">Crear cuenta</h2>
+        <h2 className="text-3xl font-bold">Crear cuenta</h2>
         <p className="text-muted-foreground">
           Completa tus datos para comenzar
         </p>
@@ -329,7 +329,7 @@ export function RegistrationStep() {
           </div>
         )}
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button variant="primary" type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? "Creando cuenta..." : "Crear cuenta"}
         </Button>
       </form>
