@@ -1,23 +1,22 @@
-"use client"
+"use client";
 
-import { useOnboarding } from "@/hooks/use-onboarding"
-import { cn } from "@/lib/utils"
+import { useOnboarding } from "@/hooks/use-onboarding";
+import { cn } from "@/lib/utils";
 
 const steps = [
   { key: "registration", label: "Registro" },
   { key: "email-validation", label: "Email" },
-  { key: "account-type", label: "Cuenta" },
-  { key: "metamap-verification", label: "ID" },
   { key: "sms-validation", label: "SMS" },
+  { key: "account-type", label: "Cuenta" },
+  { key: "metamap-verification", label: "DNI" },
   { key: "pin-setup", label: "PIN" },
-  { key: "credit-card", label: "Tarjeta" },
-]
+];
 
 export function OnboardingProgress() {
-  const { currentStep } = useOnboarding()
+  const { currentStep } = useOnboarding();
 
-  const currentIndex = steps.findIndex((step) => step.key === currentStep)
-  const progress = ((currentIndex + 1) / steps.length) * 100
+  const currentIndex = steps.findIndex((step) => step.key === currentStep);
+  const progress = ((currentIndex + 1) / steps.length) * 100;
 
   return (
     <div className="px-4 py-3 bg-card border-b border-border">
@@ -42,7 +41,9 @@ export function OnboardingProgress() {
               key={step.key}
               className={cn(
                 "text-xs text-center flex-1",
-                index <= currentIndex ? "text-primary font-medium" : "text-muted-foreground",
+                index <= currentIndex
+                  ? "text-primary font-medium"
+                  : "text-muted-foreground"
               )}
             >
               {step.label}
@@ -51,5 +52,5 @@ export function OnboardingProgress() {
         </div>
       </div>
     </div>
-  )
+  );
 }

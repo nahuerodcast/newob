@@ -7,7 +7,7 @@ import { AccountTypeStep } from "./steps/account-type-step";
 import { MetamapStep } from "./steps/metamap-step";
 import { SmsValidationStep } from "./steps/sms-validation-step";
 import { PinSetupStep } from "./steps/pin-setup-step";
-import { CreditCardStep } from "./steps/credit-card-step";
+
 import { CompletedStep } from "./steps/completed-step";
 import { OnboardingHeader } from "./onboarding-header";
 import { OnboardingProgress } from "./onboarding-progress";
@@ -53,8 +53,7 @@ export function OnboardingFlow() {
         return <SmsValidationStep />;
       case "pin-setup":
         return <PinSetupStep />;
-      case "credit-card":
-        return <CreditCardStep />;
+
       case "completed":
         return <CompletedStep />;
       default:

@@ -20,9 +20,10 @@ const buttonVariants = cva(
       },
       size: {
         default: "h-14 px-4 py-2",
-        sm: "h-12 px-3 py-2",
+        sm: "h-8 px-2 py-1 text-xs rounded-lg",
         lg: "h-16 px-6 py-3",
         icon: "h-14 w-14",
+        "icon-sm": "h-8 w-8",
       },
       disabled: {
         true: "bg-gray-200 border-gray-200 text-gray-400 cursor-not-allowed",
@@ -85,8 +86,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const customStyles: React.CSSProperties = {
       borderRadius: '16px',
       borderWidth: '1px',
-      width: '100%',
-      height: height ? `${height}px` : '56px',
+      width: size === 'icon' || size === 'icon-sm' ? 'auto' : '100%',
       fontSize: `${fontSize}px`,
       letterSpacing: '-0.15px',
       fontWeight: 600,

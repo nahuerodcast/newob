@@ -167,8 +167,8 @@ export function PinSetupStep() {
               <Button
                 type="button"
                 variant="ghost"
-                size="sm"
-                className="absolute right-0 top-0 h-full px-3"
+                size="icon-sm"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2"
                 onClick={() => setShowPin(!showPin)}
               >
                 {showPin ? (
@@ -229,8 +229,8 @@ export function PinSetupStep() {
               <Button
                 type="button"
                 variant="ghost"
-                size="sm"
-                className="absolute right-0 top-0 h-full px-3"
+                size="icon-sm"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2"
                 onClick={() => setShowConfirmPin(!showConfirmPin)}
               >
                 {showConfirmPin ? (

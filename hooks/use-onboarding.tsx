@@ -74,11 +74,10 @@ export const pinSchema = z.object({
 export type OnboardingStep =
   | "registration"
   | "email-validation"
+  | "sms-validation"
   | "account-type"
   | "metamap-verification"
-  | "sms-validation"
   | "pin-setup"
-  | "credit-card"
   | "completed";
 
 export interface OnboardingData {
@@ -87,7 +86,6 @@ export interface OnboardingData {
   smsValidation?: z.infer<typeof smsValidationSchema>;
   pin?: z.infer<typeof pinSchema>;
   metamapCompleted?: boolean;
-  creditCardCompleted?: boolean;
 }
 
 const STORAGE_KEY = "onboarding-data";
@@ -159,7 +157,7 @@ export function OnboardingProvider({
     };
 
     const timer = setTimeout(performHydration, 0);
-    
+
     const safetyTimer = setTimeout(() => {
       if (!hydrationRef.current) {
         console.log("[v0] Safety timeout triggered, forcing hydration");
@@ -167,7 +165,7 @@ export function OnboardingProvider({
         hydrationRef.current = true;
       }
     }, 1000);
-    
+
     return () => {
       clearTimeout(timer);
       clearTimeout(safetyTimer);
@@ -232,11 +230,10 @@ export function OnboardingProvider({
     const steps: OnboardingStep[] = [
       "registration",
       "email-validation",
+      "sms-validation",
       "account-type",
       "metamap-verification",
-      "sms-validation",
       "pin-setup",
-      "credit-card",
       "completed",
     ];
 
@@ -274,11 +271,10 @@ export function OnboardingProvider({
     const steps: OnboardingStep[] = [
       "registration",
       "email-validation",
+      "sms-validation",
       "account-type",
       "metamap-verification",
-      "sms-validation",
       "pin-setup",
-      "credit-card",
       "completed",
     ];
 

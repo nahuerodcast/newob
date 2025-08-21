@@ -1,33 +1,34 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { DM_Sans } from "next/font/google"
-import { GeistMono } from "geist/font/mono"
-import "./globals.css"
-import { Toaster } from "@/components/ui/toaster"
+import type React from "react";
+import type { Metadata } from "next";
+import { DM_Sans } from "next/font/google";
+import { GeistMono } from "geist/font/mono";
+import "./globals.css";
+import { Toaster } from "@/components/ui/toaster";
 
 const dmSans = DM_Sans({
-  subsets: ['latin'],
-  variable: '--font-dm-sans',
-  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
-  display: 'swap',
-})
+  subsets: ["latin"],
+  variable: "--font-dm-sans",
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "v0 App",
   description: "Created with v0",
   generator: "v0.app",
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
-}
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="en" className={dmSans.variable}>
@@ -45,5 +46,5 @@ html {
         <Toaster />
       </body>
     </html>
-  )
+  );
 }
