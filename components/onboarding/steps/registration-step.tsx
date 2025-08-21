@@ -67,7 +67,7 @@ export function RegistrationStep() {
             "[v0] Email already verified, going directly to account-type step..."
           );
           // Ir directamente al paso "account-type" en lugar de "email-validation"
-          goToStep("account-type");
+          goToStep("sms-validation");
         }, 1000);
 
         return true;
@@ -113,6 +113,9 @@ export function RegistrationStep() {
 
       // Guardar los datos de registro en el estado del onboarding
       updateStepData("registration", data);
+
+      // Guardar el email en localStorage para uso posterior en Metamap
+      localStorage.setItem("userEmail", data.email);
 
       setUserEmail(data.email);
       setIsRegistered(true);
@@ -267,8 +270,8 @@ export function RegistrationStep() {
             <Button
               type="button"
               variant="ghost"
-              size="sm"
-              className="absolute right-0 top-0 h-full px-3"
+              size="icon-sm"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-2"
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? (
@@ -329,7 +332,12 @@ export function RegistrationStep() {
           </div>
         )}
 
-        <Button variant="primary" type="submit" className="w-full" disabled={isLoading}>
+        <Button
+          variant="primary"
+          type="submit"
+          className="w-full"
+          disabled={isLoading}
+        >
           {isLoading ? "Creando cuenta..." : "Crear cuenta"}
         </Button>
       </form>

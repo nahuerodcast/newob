@@ -45,12 +45,12 @@ export function OnboardingFlow() {
         return <RegistrationStep />;
       case "email-validation":
         return <EmailValidationStep />;
+      case "sms-validation":
+        return <SmsValidationStep />;
       case "account-type":
         return <AccountTypeStep />;
       case "metamap-verification":
         return <MetamapStep />;
-      case "sms-validation":
-        return <SmsValidationStep />;
       case "pin-setup":
         return <PinSetupStep />;
 
