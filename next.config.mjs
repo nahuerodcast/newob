@@ -14,10 +14,10 @@ const nextConfig = {
       {
         source: '/(.*)',
         headers: [
-                           {
-                   key: 'Content-Security-Policy',
-                   value: "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://sdk.metamap.com https://web-button.metamap.com; connect-src 'self' https://api.metamap.com https://api.mubee-platform.com;",
-                 },
+          {
+            key: 'Content-Security-Policy',
+            value: "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://sdk.metamap.com https://web-button.metamap.com; connect-src 'self' https://api.metamap.com https://api.mubee-platform.com https://api.int-mykeego-mobility.com;",
+          },
         ],
       },
     ]

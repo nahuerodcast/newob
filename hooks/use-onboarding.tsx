@@ -113,8 +113,10 @@ export interface OnboardingContextValue {
     method?: "GET" | "POST" | "PUT",
     body?: any
   ) => Promise<any>;
-  setError: (value: string | null) => void;
+  setError: (error: string | null) => void;
   login: () => Promise<string>;
+  getOnboardingToken: () => Promise<string>;
+  getUserToken: (email: string, password: string) => Promise<string>;
   accessToken: string | null;
 }
 
@@ -315,9 +317,9 @@ export function OnboardingProvider({
       const response = await fetch(`${baseUrl}/v1/token/login`, {
         method: "POST",
         headers: {
-          "X-Client-Id": "mykeego",
+          "X-Client-Id": "mobile-app",
           "X-Client-Secret": clientSecret,
-          "X-Tenant-Id": "ranflat-sa",
+          "X-Tenant-Id": "tenant-123",
           "Content-Type": "application/json",
         },
         body: JSON.stringify({}),
@@ -345,6 +347,82 @@ export function OnboardingProvider({
     }
   }, []);
 
+  // Nueva función para obtener el token de onboarding (solo para creación de usuario)
+  const getOnboardingToken = useCallback(async () => {
+    try {
+      const baseUrl =
+        process.env.NEXT_PUBLIC_MUBEE_API_URL ||
+        "https://api.mubee-platform.com";
+      const clientSecret =
+        process.env.NEXT_PUBLIC_MUBEE_API_KEY_EMAIL_REGISTER || "";
+
+      const response = await fetch(`${baseUrl}/v1/token/login`, {
+        method: "POST",
+        headers: {
+          "X-Client-Id": "webonbording-client-int",
+          "X-Client-Secret": clientSecret,
+          "X-Tenant-Id": "tenant-123",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({}), // Body vacío
+      });
+
+      if (!response.ok) {
+        throw new Error(`Onboarding login failed: ${response.status}`);
+      }
+
+      const tokenData = await response.json();
+      return tokenData.accessToken;
+    } catch (error) {
+      console.error("Onboarding token error:", error);
+      throw error;
+    }
+  }, []);
+
+  // Nueva función para obtener el token del usuario (después de crearlo)
+  const getUserToken = useCallback(async (email: string, password: string) => {
+    try {
+      const baseUrl =
+        process.env.NEXT_PUBLIC_MUBEE_API_URL ||
+        "https://api.mubee-platform.com";
+
+      const response = await fetch(`${baseUrl}/v1/token/login`, {
+        method: "POST",
+        headers: {
+          "X-Client-Id": "mobile-app",
+          "X-Client-Secret": process.env.NEXT_PUBLIC_MUBEE_API_KEY || "",
+          "X-Tenant-Id": "tenant-123",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: email,
+          password: password,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`User login failed: ${response.status}`);
+      }
+
+      const tokenData = await response.json();
+      const token = tokenData.accessToken;
+      const refreshToken = tokenData.refreshToken;
+      const expiresIn = tokenData.expiresIn;
+      const expiryTime = Date.now() + expiresIn * 1000;
+
+      // Guardar el token del usuario en localStorage
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(TOKEN_EXPIRY_KEY, expiryTime.toString());
+      localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+      setAccessToken(token);
+
+      return token;
+    } catch (error) {
+      console.error("User login error:", error);
+      throw error;
+    }
+  }, []);
+
   const refreshTokenFunc = useCallback(async () => {
     try {
       const baseUrl =
@@ -360,13 +438,13 @@ export function OnboardingProvider({
       const response = await fetch(`${baseUrl}/v1/token/refresh-token`, {
         method: "POST",
         headers: {
-          "X-Client-Id": "mykeego",
+          "X-Client-Id": "mobile-app",
           "X-Client-Secret": clientSecret,
           "X-Tenant-Id": "ranflat-sa",
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          organizationId: "ranflat-sa",
+          organizationId: "tenant-123",
           refreshToken: storedRefreshToken,
         }),
       });
@@ -431,20 +509,37 @@ export function OnboardingProvider({
           process.env.NEXT_PUBLIC_MUBEE_API_URL ||
           "https://api.mubee-platform.com";
 
-        const token = await getValidToken();
+        // Determinar qué token usar basado en el endpoint
+        let token: string;
+        let headers: Record<string, string>;
+
+        if (endpoint === "/v1/user/users" && method === "POST") {
+          // Para la creación del usuario, usar el token de onboarding
+          token = await getOnboardingToken();
+          headers = {
+            Authorization: `Bearer ${token}`,
+            "X-Tenant-Id": "tenant-123",
+            "Content-Type": "application/json",
+          };
+        } else {
+          // Para todas las demás llamadas, usar el token del usuario (getValidToken maneja la lógica)
+          token = await getValidToken();
+          headers = {
+            Authorization: `Bearer ${token}`,
+            "X-Tenant-Id": "tenant-123",
+            "Content-Type": "application/json",
+          };
+        }
 
         const response = await fetch(`${baseUrl}${endpoint}`, {
           method,
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "X-Tenant-Id": "ranflat-sa",
-            "Content-Type": "application/json",
-          },
+          headers,
           body: body ? JSON.stringify(body) : undefined,
         });
 
         if (!response.ok) {
-          if (response.status === 401) {
+          if (response.status === 401 && endpoint !== "/v1/user/users") {
+            // Solo reintentar con login para llamadas que no sean creación de usuario
             localStorage.removeItem(TOKEN_KEY);
             localStorage.removeItem(TOKEN_EXPIRY_KEY);
             const newToken = await login();
@@ -453,7 +548,7 @@ export function OnboardingProvider({
               method,
               headers: {
                 Authorization: `Bearer ${newToken}`,
-                "X-Tenant-Id": "ranflat-sa",
+                "X-Tenant-Id": "tenant-123",
                 "Content-Type": "application/json",
               },
               body: body ? JSON.stringify(body) : undefined,
@@ -469,6 +564,22 @@ export function OnboardingProvider({
           throw new Error(`API Error: ${response.status}`);
         }
 
+        // Si es la creación del usuario y fue exitosa, hacer login automáticamente
+        if (endpoint === "/v1/user/users" && method === "POST" && response.ok) {
+          try {
+            const userData = body as { userEmail: string; password: string };
+            if (userData.userEmail && userData.password) {
+              console.log(
+                "[v0] Usuario creado exitosamente, haciendo login automático:",
+                userData.userEmail
+              );
+              await getUserToken(userData.userEmail, userData.password);
+            }
+          } catch (error) {
+            console.error("[v0] Error en auto-login del usuario:", error);
+          }
+        }
+
         return await response.json();
       } catch (error) {
         const errorMessage =
@@ -479,7 +590,7 @@ export function OnboardingProvider({
         setIsLoading(false);
       }
     },
-    [getValidToken, login]
+    [getValidToken, login, getOnboardingToken]
   );
 
   const value: OnboardingContextValue = {
@@ -496,6 +607,8 @@ export function OnboardingProvider({
     apiCall,
     setError,
     login,
+    getOnboardingToken,
+    getUserToken,
     accessToken,
   };
 
